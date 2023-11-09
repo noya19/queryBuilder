@@ -10,20 +10,20 @@ export type QueryMimeType =
 
 type QueryOperator = '=' | '!=' | '>=' | '>' | '<=' | '<' | '~=';
 
-type whereArgs = {
+export type whereArgs = {
   columnName: string;
   value: string | number | null;
   operator: QueryOperator;
 };
 
-type GroupByClause = {
+export type GroupByClause = {
   columnName: string;
   havingArgs?: Pick<whereArgs, 'operator' | 'value'>;
 };
 
 type SortDirection = 'ASC' | 'DESC';
 
-type OrderByClause = {
+export type OrderByClause = {
   columnName: string;
   sortDirection: SortDirection;
 };
@@ -92,5 +92,37 @@ export abstract class AbstractQueryBuilder {
     T extends Record<string, any> = Record<string, any>,
     E extends Error = Error
     >(): Promise<Result<T[], E>>
+
+}
+
+export const AggregationFunctionsRegex =
+  /(sum|avg|min|max|count)\((\*|"?[\w\d]+"?)\)/i;
+
+/**
+ *
+ * @param aggrFnStr a string that represents the selection of a an aggregate fn in SQL Query, like `min("id")` or `avg(*)`
+ * @returns `null` if `aggrFnStr` is not a valid aggregation function otherwise returns an object with properties
+ * `column` and `fn` that represent the name of the column and the function
+ * @example
+ * ```ts
+ * const aggrFn = `min("id")`;
+ * const aggrFnRes = extractAggrFnComponents(aggrFn);
+ *
+ * if(aggrFnRes) {
+ *      const {column, fn} = aggrFnRes; // column = "id", fn = "min"
+ * }
+ * ```
+ */
+
+export function extractAggrFnComponents(aggrFnStr: string){
+  const matches = aggrFnStr.match(AggregationFunctionsRegex);
+  if(!matches) return null;
+  
+  const fn = matches[1];
+  let column = matches[2];
+
+  column = column.replace(/("?)([\w\d]+)("?)/g, "$2");
+
+  return { column, fn };
 
 }

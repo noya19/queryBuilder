@@ -1,4 +1,4 @@
-import { OrderByClause } from '../base'
+import { OrderByClause } from '../base/index'
 
 export class NoConnectionProvidedError extends Error {
 
