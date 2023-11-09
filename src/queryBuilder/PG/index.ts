@@ -1,6 +1,6 @@
 import { AbstractQueryBuilder, AggregationFunctionsRegex, GroupByClause, QueryMimeType, extractAggrFnComponents, whereArgs } from "../base";
-import { Result, result } from "../../lib/results";
-import { FromUndefinedError, NotInGroupBySelectionError, OrderByNotInGroupByError } from "../errors";
+import { Result, intoResultAsync, result } from "../../lib/results";
+import { FromUndefinedError, NoConnectionProvidedError, NotInGroupBySelectionError, OrderByNotInGroupByError } from "../errors";
 
 export class PGQueryBuilder extends AbstractQueryBuilder{
     private connection: any;
@@ -96,8 +96,21 @@ export class PGQueryBuilder extends AbstractQueryBuilder{
         return result.ok([Buffer.from(sql.trim()), 'text/plain']);
     }
 
-    execute<T extends Record<string, any> = Record<string, any>, E extends Error = Error>(): Promise<Result<T[], E>> {
-        
+    async execute<T extends Record<string, any> = Record<string, any>, E extends Error = Error>(): Promise<Result<T[], E>> {
+       if(!this.connection) return result.err<T[],E>(new NoConnectionProvidedError()); 
+
+       const [data, err] = this.compile();
+
+       if(err) return result.err<T[], E>(err);
+
+       //Now we know that here the output MIME type will be text/plain
+       const query = data[0].toString('utf-8');
+
+       const [res, err2] = await intoResultAsync(this.connection.execute, query);
+
+       if(err2) return result.err<T[],E>(err2);
+
+        return result.ok<T[],E>(res as T[]);
     }
 
 }
