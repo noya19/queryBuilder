@@ -21,7 +21,7 @@ export class PGQueryBuilder extends AbstractQueryBuilder{
                 return `lower(cast(${columnName} as varchar)) SIMILAR TO '%${value.toString().toLowerCase().replace(/\s+/g,'%')}%'`;
             }
 
-            else return `${columnName} ${operator} ${value}`
+            else return ` ${columnName} ${operator} ${value}`
         }).join(" AND ");
     }
 
@@ -67,7 +67,7 @@ export class PGQueryBuilder extends AbstractQueryBuilder{
             if(!aggFnRes) return v === "*" ? "*" : `"${v}"`
 
             return aggFnRes.column === "*" ? `${aggFnRes.fn}(${aggFnRes.column})` : `${aggFnRes.fn}("${aggFnRes.column}")`;
-        })
+        }).join(", ")
 
         //6. Build where Clause
         const whereClause = this.whereColumns.length === 0 ? '' : "WHERE" + this.constructWhereClause(this.whereColumns);
@@ -106,7 +106,9 @@ export class PGQueryBuilder extends AbstractQueryBuilder{
        //Now we know that here the output MIME type will be text/plain
        const query = data[0].toString('utf-8');
 
-       const [res, err2] = await intoResultAsync(this.connection.execute, query);
+       const execute = this.connection.query.bind(this.connection);
+
+       const [res, err2] = await intoResultAsync(execute, query);
 
        if(err2) return result.err<T[],E>(err2);
 
@@ -114,3 +116,6 @@ export class PGQueryBuilder extends AbstractQueryBuilder{
     }
 
 }
+
+//TODO: Write Tests to test the library
+//TODO: Write a nice README.md file

@@ -65,10 +65,12 @@ export abstract class AbstractQueryBuilder {
       value: value,
       operator: operator,
     });
+    return this;
   }
 
   groupBy(colName: string, havingArgs?: Pick<whereArgs, 'operator' | 'value'>) {
     this.groupByClauses.push({ columnName: colName, havingArgs });
+    return this;
   }
 
   orderBy(colName: string, sortDirection: SortDirection) {
@@ -76,14 +78,18 @@ export abstract class AbstractQueryBuilder {
       columnName: colName,
       sortDirection,
     });
+
+    return this;
   }
 
   limit(lim: number) {
     this.limitVal = lim;
+    return this;
   }
 
   offset(offset: number) {
     this.offsetVal = offset;
+    return this;
   }
 
   abstract compile<E extends Error>(): Result<[Buffer, QueryMimeType], E>;

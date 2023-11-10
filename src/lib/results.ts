@@ -1,3 +1,5 @@
+import { inspect } from "util";
+
 export type Result<T, E extends Error> = [T, null] | [null,  E]
 
 export function intoResult<
@@ -19,10 +21,11 @@ export async function intoResultAsync<
 >(cb: T, ...args: Parameters<T>): Promise<Result<Awaited<ReturnType<T>>, E>>{
     try{
         const res = (await cb(...args)) as Awaited<ReturnType<T>>;
-        return [res, null]
+        return [res, null];
     }catch(e){
         const err = e as E;
-        return [null, err]
+        console.log(err);
+        return [null, err];
     }
 }
 
