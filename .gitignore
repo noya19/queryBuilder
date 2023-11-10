@@ -1,2 +1,6 @@
 #Node artifacts
 node_modules/
+
+
+#Vitest Coverage
+coverage/
